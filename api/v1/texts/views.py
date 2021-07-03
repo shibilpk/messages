@@ -13,8 +13,8 @@ class TagList(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, format=None):
-        snippets = Tag.objects.all()
-        serializer = TagSerializer(snippets, many=True)
+        tag = Tag.objects.all()
+        serializer = TagSerializer(tag, many=True)
 
         response_data = {
             "StatusCode": 6000,
@@ -26,7 +26,6 @@ class TagList(APIView):
 
 
 class TagDetail(APIView):
-
     permission_classes = [permissions.AllowAny]
 
     def get_object(self, pk):
@@ -36,13 +35,17 @@ class TagDetail(APIView):
             raise Http404
 
     def get(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = TagSerializer(snippet)
+        tag = self.get_object(pk)
+        serializer = TagSerializer(tag)
+
+        text_snippets = TextSnippet.objects.filter(tag=tag)
+        text_snippets_serializer = TextSnippetSerializer(text_snippets, many=True, context={"request": request})
 
         response_data = {
             "StatusCode": 6000,
             "data":  {
                 "data": serializer.data,
+                "text_snippets": text_snippets_serializer.data,
             }
         }
         return Response(response_data, status=status.HTTP_200_OK)
